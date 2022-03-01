@@ -1,0 +1,43 @@
+#!/bin/bash
+
+function generate_cmakelists() {
+    # export SOONG_GEN_CMAKEFILES=1
+    # export SOONG_GEN_CMAKEFILSE_DEBUG=1
+
+    build/soong/soong_ui.bash --make-mode nothing
+}
+
+function generate_compiledb() {
+    # $TOP/prebuilts/build-tools/linux-x86/bin/ninja -f ${NINJA_FILE[0]} -t commands $@ 2>&1 | tee build.log
+    $TOP/prebuilts/build-tools/linux-x86/bin/ninja -f ${NINJA_FILE[0]} -t commands $@ 2>&1 | sed -e 's/\/bin\/bash -c "//g' -e 's/"$//g' | tee build.log
+    sed -i '/^rm /d' build.log
+    compiledb -p build.log -v -S -f --full-path --command-style -o compile_commands@$1.json
+    sed -i "s|\"command\": \"|\"command\": \"$(gettop)/|g" compile_commands@$1.json
+    rm build.log
+    # $TOP/prebuilts/build-tools/linux-x86/bin/ninja -f ${NINJA_FILE[0]} -t commands $@ 2>&1 | sed -e 's/\/bin\/bash -c "//g' -e 's/"$//g' | tee build.log
+    # compiledb -p build.log -v -S -f -o compdb.json
+    # local toolchains=`grep "bin/clang++" compdb.json | sort | uniq | sed -e 's/"//g' -e 's/bin\/clang.*/bin/g'`
+    # local replace_expr="sed "
+    # for cc in $toolchains; do
+        # replace_expr="$replace_expr -e 's/${cc//\//\\\/}/${TOP//\//\\\/}\/${cc//\//\\\/}/g'"
+    # done
+    # eval "$replace_expr compdb.json | tee compile_commands@$1.json"
+    # rm compdb.json build.log
+}
+
+if [ ! -e 'build/envsetup.sh' ]; then
+    echo "Must run in the android project root directory."
+    exit 1
+fi
+
+source build/envsetup.sh
+TOP=`gettop`
+declare -a NINJA_FILE=(`ls out/combined-*\.ninja`)
+
+if [ -z "$NINJA_FILE" ] || [ ! -e ${NINJA_FILE[0]} ]; then
+    generate_cmakelists
+    NINJA_FILE=(`ls out/combined-*\.ninja`)
+fi
+if [ -e ${NINJA_FILE[0]} -a $# -gt 0 ]; then
+    generate_compiledb $@
+fi

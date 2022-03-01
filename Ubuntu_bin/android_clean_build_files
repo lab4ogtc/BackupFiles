@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ ! -e 'build/envsetup.sh' ]; then
+    echo "Must run in the android project root directory."
+    exit 1
+fi
+
+find out/soong/.intermediates -type f -a ! \( -regextype posix-extended -regex ".*\.(cc|h|c|cpp|inc|S|java|srcjar|xml)$" \) -delete
+# find out/soong/.intermediates -type f | grep -v -e \\.cpp$ -e \\.c$ -e \\.cc$ -e \\.h$ -e \\.inc$ -e \\.S$ | xargs rm
+find out/soong/.intermediates -empty -type d -delete
+
+products=`ls out/target/product | grep -v generic`
+for p in $products; do
+    p_dir=out/target/product/$p
+    find $p_dir  -maxdepth 1 -mindepth 1 -type d | grep -v obj$ | xargs rm -fr 
+    find $p_dir  -maxdepth 2 -mindepth 2 -type d | grep -v -E "[a-z]$" | xargs rm -fr 
+done

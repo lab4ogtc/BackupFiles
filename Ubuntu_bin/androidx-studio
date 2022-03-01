@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd $MOUNT_POINT/androidx-main/frameworks/support/
+ANDROIDX_PROJECTS=MAIN ./gradlew studio #>/dev/null 2>&1 &
