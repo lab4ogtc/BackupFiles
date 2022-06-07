@@ -13,15 +13,15 @@ if (Test-Path Function:\prompt) {
 }
 
 function prompt() {
-    if (![String]::IsNullOrEmpty($env:all_proxy)) {
+    if (![String]::IsNullOrEmpty($env:HTTP_PROXY)) {
         Write-Host -NoNewline "`e[1;32m[v2ray]`e[m "
     }
     PromptBackup;
 }
 
 
-Set-Alias -Name python2 -Value C:/Python2*/python.exe
-Set-Alias -Name python3 -Value C:/Python3*/python.exe
+Set-Alias -Name python2 -Value C:/Python27/python.exe
+Set-Alias -Name python3 -Value C:/Python310/python.exe
 Set-Alias -Name gedit -Value 'C:/Program Files/Notepad++/notepad++.exe'
 
 
@@ -42,6 +42,8 @@ if (Test-Path($ChocolateyProfile)) {
 	Import-Module "$ChocolateyProfile"
 	refreshenv
 }
+
+Import-Module 'D:\Developer\vcpkg\scripts\posh-vcpkg'
 
 function VsVarsAll($platform = "x64") {
     # get the path to vcvarsall.bat
@@ -70,32 +72,40 @@ function GetStringFromFiles($pattern, $filename=".") {
 New-Alias sgrep GetStringFromFiles
 
 function ApplyV2rayProxy() {
-	if ([String]::IsNullOrEmpty($env:all_proxy)) {
-		Set-Item Env:all_proxy "socks5://127.0.0.1:10808"
-		Write-Output "V2ray Proxy On"
-	} else {
-		Remove-Item Env:all_proxy
-		Write-Output "V2ray Proxy Off"
-	}
+    if ([String]::IsNullOrEmpty($env:HTTP_PROXY)) {
+        Set-Item Env:HTTP_PROXY "http://127.0.0.1:10811"
+        Set-Item Env:HTTPS_PROXY "http://127.0.0.1:10811"
+        Set-Item Env:all_proxy "socks5://127.0.0.1:10810"
+        Write-Output "V2ray Proxy On"
+    } else {
+        Remove-Item Env:HTTP_PROXY
+        Remove-Item Env:HTTPS_PROXY
+        Remove-Item Env:all_proxy
+        Write-Output "V2ray Proxy Off"
+    }
 }
 New-Alias v2ray ApplyV2rayProxy
 
 function MountWSL() {
-	wsl --mount \\.\PHYSICALDRIVE2
+    wsl --mount \\.\PHYSICALDRIVE2
 }
 
 function UMountWSL() {
-	wsl --unmount \\.\PHYSICALDRIVE2
+    wsl --unmount \\.\PHYSICALDRIVE2
 }
 
 function VcpkgPath($triplet=${env:VCPKG_DEFAULT_TRIPLET}) {
     $env:Path += ";$env:Vcpkg_ROOT\installed\$triplet\bin;$env:Vcpkg_ROOT\installed\$triplet\debug\bin"
 }
 
+function GoogleDepotTools() {
+    $env:Path += ";D:\Developer\misc\depot_tools"
+}
+
 function WsaProxyOn() {
     $WinNetIP=$(Get-NetIPAddress -InterfaceAlias 'vEthernet (WSL)' -AddressFamily IPV4)
     adb connect 127.0.0.1:58526
-    adb shell settings put global http_proxy "$($WinNetIP.IPAddress):10809"
+    adb shell settings put global http_proxy "$($WinNetIP.IPAddress):10811"
 }
 
 function WsaProxyOff() {
