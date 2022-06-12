@@ -121,15 +121,15 @@ ulimit -n 4096
 
 function v2ray {
     local HOST_IP=$(awk '/nameserver / {print $2; exit}' /etc/resolv.conf 2>/dev/null)
-    if [[ -z $all_proxy ]]; then
-        export all_proxy="socks5://${HOST_IP}:10808"
-        export HTTP_PROXY="http://${HOST_IP}:10809"
-        export HTTPS_PROXY="socks5://${HOST_IP}:10808"
+    if [[ -z "$HTTP_PROXY" ]]; then
+        # export all_proxy="socks5://${HOST_IP}:10810"
+        export HTTP_PROXY="http://${HOST_IP}:10811"
+        export HTTPS_PROXY="http://${HOST_IP}:10811"
         V2RAY_PS_OLD="$PS1"
         PS1='\[\033[01;36m\][v2ray]\[\033[00m\]'"$PS1"
         echo "V2ray proxy ON"
     else
-        unset all_proxy
+        # unset all_proxy
         unset HTTP_PROXY
         unset HTTPS_PROXY
         PS1=$V2RAY_PS_OLD
@@ -139,19 +139,30 @@ function v2ray {
 }
 
 export MOUNT_POINT="/mnt/wsl/PHYSICALDRIVE2"
+# ccache setup
+export CCACHE_BASEDIR=$MOUNT_POINT
 
 # Golang setup
 export GOPROXY=https://goproxy.io
+export PATH=$(go env GOPATH)/bin:$PATH
 
 # Rust setup
 export RUSTUP_HOME=$MOUNT_POINT/.rustup
 export CARGO_HOME=$MOUNT_POINT/.cargo
-if [ -f "$CARGO_HOME/env" ]; then
+if [ -e "$CARGO_HOME/env" ]; then
     source "$CARGO_HOME/env"
 fi
+
+# Google dev tools
+function gn_path {
+    local GOOGLE_DEPOT_TOOLS=$MOUNT_POINT/google/depot_tools
+    if [ -d "$GOOGLE_DEPOT_TOOLS" ]; then
+        echo $GOOGLE_DEPOT_TOOLS
+        export PATH=$GOOGLE_DEPOT_TOOLS:$PATH
+    fi
+}
 
 # Gradle setup
 export GRADLE_USER_HOME=$MOUNT_POINT/.gradle
 
 alias cdd='cd $MOUNT_POINT'
-. "/mnt/wsl/PHYSICALDRIVE2/.cargo/env"
