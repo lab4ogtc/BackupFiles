@@ -1,3 +1,6 @@
 #!/bin/bash
 
+X11_SESSION=$(ls /tmp/.X11-unix)
+export DISPLAY=:${X11_SESSION#*X}
+
 $HOME/Application/idea-IU/bin/idea.sh >/dev/null 2>&1 &
