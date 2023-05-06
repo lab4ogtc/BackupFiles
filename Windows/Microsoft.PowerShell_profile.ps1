@@ -37,13 +37,11 @@ if (Test-Path($CondaProfile)) {
 	#Add-CondaEnvironmentToPrompt
 }
 
-$ChocolateyProfile = "${env:ChocolateyInstall}\helpers\chocolateyProfile.psm1"
-if (Test-Path($ChocolateyProfile)) {
-	Import-Module "$ChocolateyProfile"
-	refreshenv
-}
-
-Import-Module 'D:\Developer\vcpkg\scripts\posh-vcpkg'
+#$ChocolateyProfile = "${env:ChocolateyInstall}\helpers\chocolateyProfile.psm1"
+#if (Test-Path($ChocolateyProfile)) {
+#	Import-Module "$ChocolateyProfile"
+#	refreshenv
+#}
 
 function VsVarsAll($platform = "x64") {
     # get the path to vcvarsall.bat
@@ -73,14 +71,14 @@ New-Alias sgrep GetStringFromFiles
 
 function ApplyV2rayProxy() {
     if ([String]::IsNullOrEmpty($env:HTTP_PROXY)) {
-        Set-Item Env:HTTP_PROXY "http://127.0.0.1:10811"
-        Set-Item Env:HTTPS_PROXY "http://127.0.0.1:10811"
-        Set-Item Env:all_proxy "socks5://127.0.0.1:10810"
+        Set-Item Env:HTTP_PROXY "http://127.0.0.1:10809"
+        Set-Item Env:HTTPS_PROXY "http://127.0.0.1:10809"
+        #Set-Item Env:all_proxy "socks5://127.0.0.1:10808"
         Write-Output "V2ray Proxy On"
     } else {
         Remove-Item Env:HTTP_PROXY
         Remove-Item Env:HTTPS_PROXY
-        Remove-Item Env:all_proxy
+        #Remove-Item Env:all_proxy
         Write-Output "V2ray Proxy Off"
     }
 }
@@ -96,20 +94,32 @@ function UMountWSL() {
 
 function VcpkgPath($triplet=${env:VCPKG_DEFAULT_TRIPLET}) {
     $env:Path += ";$env:Vcpkg_ROOT\installed\$triplet\bin;$env:Vcpkg_ROOT\installed\$triplet\debug\bin"
+    $env:INCLUDE += ";$env:Vcpkg_ROOT\installed\$triplet\include"
+    $env:LIB += ";$env:Vcpkg_ROOT\installed\$triplet\lib"
+    $env:LIBPATH += ";$env:Vcpkg_ROOT\installed\$triplet\lib"
+}
+
+function VcpkgTool($package, $triplet=${env:VCPKG_DEFAULT_TRIPLET}) {
+    $env:Path += ";$env:Vcpkg_ROOT\installed\$triplet\tools\$package"
 }
 
 function GoogleDepotTools() {
     $env:Path += ";D:\Developer\misc\depot_tools"
 }
 
+function WsaConnect() {
+    adb connect 127.0.0.1:58526
+}
+
 function WsaProxyOn() {
     $WinNetIP=$(Get-NetIPAddress -InterfaceAlias 'vEthernet (WSL)' -AddressFamily IPV4)
-    adb connect 127.0.0.1:58526
+    #adb connect 127.0.0.1:58526
     adb shell settings put global http_proxy "$($WinNetIP.IPAddress):10811"
+    #adb shell settings put global http_proxy "127.0.0.1:10809"
 }
 
 function WsaProxyOff() {
-    adb connect 127.0.0.1:58526
+    #adb connect 127.0.0.1:58526
     #adb shell settings delete global http_proxy
     #adb shell settings delete global global_http_proxy_host
     #adb shell settings delete global global_http_proxy_port
