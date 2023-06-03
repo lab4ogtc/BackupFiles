@@ -114,7 +114,8 @@ function WsaConnect() {
 function WsaProxyOn() {
     $WinNetIP=$(Get-NetIPAddress -InterfaceAlias 'vEthernet (WSL)' -AddressFamily IPV4)
     #adb connect 127.0.0.1:58526
-    adb shell settings put global http_proxy "$($WinNetIP.IPAddress):10811"
+    #adb shell settings put global http_proxy "$($WinNetIP.IPAddress):10811"
+    adb shell 'settings put global http_proxy `ip route list match 0 table all scope global | cut -F3`:10811'
     #adb shell settings put global http_proxy "127.0.0.1:10809"
 }
 
