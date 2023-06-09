@@ -15,6 +15,10 @@ args = {
 }
 abiFilters = ["arm64-v8a"] # x86 x86_64 armeabi-v7a
 ndk_toolchain = os.path.join(args['NDK_HOME'], args['NDK_VERSION'], 'build', 'cmake', 'android.toolchain.cmake')
+
+if 'ANDROID_NDK_HOME' in os.environ:
+    ndk_toolchain = os.path.join(os.environ['ANDROID_NDK_HOME'], 'build', 'cmake', 'android.toolchain.cmake')
+
 if 'CMAKE_BUILD_TYPE' in os.environ:
     args['BUILD_TYPE'] = os.environ['CMAKE_BUILD_TYPE']
 
