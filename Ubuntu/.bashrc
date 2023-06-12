@@ -138,6 +138,21 @@ function v2ray {
     fi
 }
 
+function wsaconnect {
+    local HOST_IP=$(awk '/nameserver / {print $2; exit}' /etc/resolv.conf 2>/dev/null)
+    adb.exe connect $HOST_IP:58526
+}
+
+function wsaproxyon {
+    local HOST_IP=$(awk '/nameserver / {print $2; exit}' /etc/resolv.conf 2>/dev/null)
+    adb.exe shell settings put global http_proxy "$HOST_IP:10811"
+}
+
+function wsaproxyoff {
+    local HOST_IP=$(awk '/nameserver / {print $2; exit}' /etc/resolv.conf 2>/dev/null)
+    adb.exe shell settings put global http_proxy :0
+}
+
 export MOUNT_POINT="/mnt/wsl/PHYSICALDRIVE2"
 # ccache setup
 export CCACHE_BASEDIR=$MOUNT_POINT
@@ -151,6 +166,8 @@ export RUSTUP_HOME=$MOUNT_POINT/.rustup
 export CARGO_HOME=$MOUNT_POINT/.cargo
 if [ -e "$CARGO_HOME/env" ]; then
     source "$CARGO_HOME/env"
+else
+    echo "Disk driver not mounted"
 fi
 
 # Google dev tools
@@ -162,7 +179,48 @@ function gn_path {
     fi
 }
 
+# Android SDK HOME
+export ANDROID_HOME=$HOME/Android/Sdk
+export ANDROID_NDK_VERSION=21.4.7075529
+export ANDROID_NDK_HOME=/home/guqi/Android/Sdk/ndk/${ANDROID_NDK_VERSION}
+
 # Gradle setup
 export GRADLE_USER_HOME=$MOUNT_POINT/.gradle
 
+# Java Heap Size
+export MAVEN_OPTS="-Xmx4096M"
+
 alias cdd='cd $MOUNT_POINT'
+alias ii='explorer.exe'
+alias adb='adb.exe'
+alias notepad='notepad++.exe'
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+# __conda_setup="$('/home/guqi/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+# if [ $? -eq 0 ]; then
+    # eval "$__conda_setup"
+# else
+    if [ -f "/home/guqi/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/guqi/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/home/guqi/miniconda3/bin:$PATH"
+    fi
+# fi
+# unset __conda_setup
+# <<< conda initialize <<<
+
+# ROS Setup
+function rossetup {
+    source /opt/ros/noetic/setup.bash
+    rosdep update
+}
+
+# Bazel
+function bazelout {
+    bazelisk cquery --output=starlark --starlark:expr="' '.join([f.path for f in target.files.to_list()])" $@ 2>/dev/null
+}
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
